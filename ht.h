@@ -288,7 +288,7 @@ private:
     // ADD MORE DATA MEMBERS HERE, AS NECESSARY
     double resizeAlpha_;
     unsigned long long size_;
-    unsigned long long tsize_;
+    double tsize_;
 
 };
 
@@ -329,6 +329,9 @@ HashTable<K,V,Prober,Hash,KEqual>::~HashTable()
 		x = nullptr;
 	}
 
+	size_ = 0;
+  tsize_ = 0;
+
 	//clear vector
 	table_.clear();
 	
@@ -351,43 +354,14 @@ bool HashTable<K,V,Prober,Hash,KEqual>::empty() const
 template<typename K, typename V, typename Prober, typename Hash, typename KEqual>
 size_t HashTable<K,V,Prober,Hash,KEqual>::size() const
 {
-	//count all non empty items in the table_
-	// size_t ret = 0;
-
-	// for(auto x: table_){
-
-	// 	if( x!= nullptr && !x->deleted){
-	// 		ret++;
-	// 	}
-
-	// }
-	// std::cout << "size_ = " << size_ << std::endl;
-	// return ret;
-    return size_;
+  return size_;
 }
 
 // To be completed
 template<typename K, typename V, typename Prober, typename Hash, typename KEqual>
 void HashTable<K,V,Prober,Hash,KEqual>::insert(const ItemType& p)
 {
-    //Below should be the number of non-nullptr spaces, so we can't use size() because that
-    //doesn't take into account "deleted" nodes
-	
-    double sz = 0;//Turn this into a member
-
-    for(auto x: table_){
-			if(x != nullptr){
-				sz++;
-			}
-		}//Amount of elements in table, regardless of if they are deleted or not
-
-	//std::cout << "sz = " << sz << " and tsize_ = " << tsize_ << std::endl;
-	//if(tsize_ != 0){
-		double alpha = (sz/CAPACITIES[mIndex_]);
-	//}
-
-	//std::cout << "Current alpha: " << alpha << std::endl;
-	//std::cout << "Comp. alpha: " << resizeAlpha_ << std::endl;
+	double alpha = (/*sz*/tsize_/CAPACITIES[mIndex_]);
 
 	//Check if the container needs to be resized (aka if loading factor is met)
 	if( alpha >= resizeAlpha_ ){
@@ -406,7 +380,7 @@ void HashTable<K,V,Prober,Hash,KEqual>::insert(const ItemType& p)
 	}else if(nullptr == table_[loc] ) {//Empty space to place item
 		table_[loc] = new HashItem(p);//Allocate space on the heap and point to it
 		size_++;
-        //tsize_++;
+    tsize_++;
   }else{//Key is already in map
 		table_[loc]->item = p;//Replace the item 
 	}
@@ -494,18 +468,6 @@ typename HashTable<K,V,Prober,Hash,KEqual>::HashItem* HashTable<K,V,Prober,Hash,
 template<typename K, typename V, typename Prober, typename Hash, typename KEqual>
 void HashTable<K,V,Prober,Hash,KEqual>::resize()
 {
-	/**
-	* @brief Resizes the hash table replacing the old with a new
-	* table of the next prime size given in CAPACITIES.  Must rehash
-	* all non-deleted items while freeing all deleted items.
-	* 
-	* Must run in O(m) where m is the new table size
-	* 
-	* @throws std::logic_error if no more CAPACITIES exist
-	*/
-
-    std::cout << "Before resizing size is " << tsize_ << std::endl;
-
 	mIndex_++;//Increment resize array index
 
 	if( mIndex_ >= 28 ){
@@ -513,7 +475,6 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
 	}
 
 	std::vector<HashItem*> newVec( CAPACITIES[mIndex_], nullptr);//Create a new vector with the updated capacity
-    //std::cout << "newVec size is " << newVec.size() << std::endl;
 
 	//Make a copy of the current vector (using copy constructor)
 	std::vector<HashItem*> tempVec = table_;
@@ -521,7 +482,7 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
 	//Make new vector the new table for the hash table
 	table_ = newVec;
 	size_ = 0;
-	//tsize_ = 0;
+	tsize_ = 0;
 
 	//Go thorugh temp vector and insert non-deleted members into new table_
 	for(auto x: tempVec){
@@ -535,8 +496,6 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
 			this->insert(x->item);
 		}
 	}
-
-    std::cout << "After resizing size is " << tsize_ << std::endl;
 }
 
 // Almost complete
