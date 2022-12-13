@@ -92,6 +92,44 @@ std::set<std::string> boggle(const std::set<std::string>& dict, const std::set<s
 bool boggleHelper(const std::set<std::string>& dict, const std::set<std::string>& prefix, const std::vector<std::vector<char> >& board, 
 								   std::string word, std::set<std::string>& result, unsigned int r, unsigned int c, int dr, int dc)
 {
-//add your solution here!
+	word.push_back(board[r][c]);//Add letter to the end of the word
 
+	if(dr){//Increment search pos
+		r++;
+	}
+
+	if(dc){//Increment search pos
+		c++;
+	}
+
+	bool invalid_indexes = (c >= board.size() || r >= board[0].size() );//Are incremented indexes valid?
+	bool longerWord = false;//Default false
+
+	//Search word in dictionary
+	std::set<std::string>::iterator it;
+	it = dict.find(word);
+	
+	//If word is in dictionary 
+	if(it != dict.end()){		
+
+		if(!invalid_indexes){//If indexes are valid
+			longerWord = boggleHelper(dict, prefix, board, word, result, r, c, dr, dc);
+			//call boggleHelper on next position to see if there is a longer word
+		}
+
+		if( !longerWord ){//If there is no longer word in the search path
+			result.insert(word);//Insert current word into return set
+			longerWord = true;
+		}
+
+	}else{//If word is not in dictionary		
+		if(!invalid_indexes){//call bogleHelper (if indexes are valid)	
+			boggleHelper(dict, prefix, board, word, result, r, c, dr, dc);	
+		}
+	}
+
+	if(longerWord){//If a longer word was found, return true so previous calls won't add anything to the return set
+		return true;
+	}
+	return false;
 }
